@@ -77,6 +77,8 @@ class vel_control:
         # create a message object containing the Twist message
         self.vel_control_msg = Twist()
 
+
+        # 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
         # Set sleep rate in Hz
         self.rate = rospy.Rate(1)
 
