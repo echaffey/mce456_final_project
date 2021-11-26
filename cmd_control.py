@@ -77,12 +77,10 @@ class vel_control:
         # create a message object containing the Twist message
         self.vel_control_msg = Twist()
 
-
-        # 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
         # Set sleep rate in Hz
         self.rate = rospy.Rate(1)
 
-    def publish_vel_control_control(self, vel_control_msg):
+    def publish_vel_control(self, vel_control_msg):
         # Publish the message to "vel_control"
         self.pub.publish(vel_control_msg)
         self.rate.sleep()
@@ -122,7 +120,7 @@ class vel_control:
         self.publish_vel_control(self.vel_control_msg)
 
     def move_right(self):
-        # --------- ROTATE COUNTERCLOCKWISE 360 DEGREES ----------
+        # --------- ROTATE CLOCKWISE 360 DEGREES ----------
         print("Turning robot counterclockwise")
         # linear_velocity_x = 0.0  # this in in meters per second
         angular_velocity_z = -0.5  # this is in radians per second
