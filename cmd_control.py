@@ -4,6 +4,7 @@
 """ # PLANNING
 
 _Classes_
+- Position
 - Movement
 -- Linear velocity
 -- Angular velocity
@@ -47,17 +48,10 @@ _Ideas_
 
 """
 
-
-
-
-
-
-
-
-
 import rospy
 import numpy as np
 from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
 import time
 import sys
 
@@ -67,22 +61,38 @@ class vel_control:
 
     def __init__(self):
 
-        # create a publisher object to send the twist message
-        # Twist is the common_msg type that includes linear and angular velocity parameters
-        self.pub = rospy.Publisher("vel_control", Twist, queue_size=10)
+        self.x = -1
+        self.y = -1
+        self.z = -1
 
         # Create a node instance for the velocity controller with name 'move'
         rospy.init_node('move', anonymous=True)
 
-        # create a message object containing the Twist message
-        self.vel_control_msg = Twist()
-
         # Set sleep rate in Hz
         self.rate = rospy.Rate(1)
 
+        # create a publisher object to send the twist message
+        # Twist is the common_msg type that includes linear and angular velocity parameters
+        self.vel_pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
+        self.pos_sub = rospy.Subscriber('/odom', Odometry, self.odom_callback)
+
+        # create a Twist message object
+        self.vel_control_msg = Twist()
+
+    def odom_callback(self, msg):
+
+        # Update the robots current position and orientation
+        self.x = msg.pose.pose.position.x
+        self.y = msg.pose.pose.position.y
+        self.z = msg.pose.pose.position.z
+
+
+        # print(self.x, self.y, self.z)
+        self.rate.sleep()
+
     def publish_vel_control(self, vel_control_msg):
         # Publish the message to "vel_control"
-        self.pub.publish(vel_control_msg)
+        self.vel_pub.publish(vel_control_msg)
         self.rate.sleep()
 
 
@@ -132,7 +142,7 @@ class vel_control:
 
     def move(self, new_linear_vel, new_angluar_vel):
         self.vel_control_msg.linear.x = new_linear_vel
-        self.vel_control_msg.angular.z = new_angular_vel
+        self.vel_control_msg.angular.z = new_angluar_vel
         self.publish_vel_control(self.vel_control_msg)
 
 
@@ -159,9 +169,10 @@ class vel_control:
     # This is the main function; the program starts here.
 if __name__ == '__main__':
     try:
-        # controller = vel_control()
+        controller = vel_control()
+        controller.move(0, 0.5)
+        rospy.spin()
         # controller.robot_controller()
-        pass
 
     except KeyboardInterrupt:
         print("Shutting Down")

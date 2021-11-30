@@ -15,8 +15,8 @@ def scan_callback(msg):
     angles = msg.angle_min + num_ranges * msg.angle_increment
 
     # Slice values into right and left measurements based on the angle measure
-    left  = ranges[(angles<np.pi/2)]
-    right = ranges[(angles>=np.pi/2) & (angles < np.pi)]
+    left  = ranges[(angles<=np.pi/2)]
+    right = ranges[(angles>np.pi/2) & (angles<=np.pi)]
 
     # minimum values corresponding to the closest proximity to the robot
     # maximum value set to 10
