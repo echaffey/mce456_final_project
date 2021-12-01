@@ -71,7 +71,7 @@ class Vision():
         # cv2.imshow("Raw Image", img)
         # cv2.imshow("Image with Contours", img_contours)
         # cv2.waitKey(3)
-        print(f'Center: {center}')
+        # print(f'Center: {center}')
         # converting crop_img from cv to ros msg
         msg = self.bridge_object.cv2_to_imgmsg(img_contours, encoding="rgb8")
         # Publishing the Image message
