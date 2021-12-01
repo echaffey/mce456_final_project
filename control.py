@@ -1,33 +1,10 @@
 #!/usr/bin/env python3
 
 import rospy
-# from cmd_vision import Vision
-# from cmd_control import vel_control
-#
-#
-# rospy.init_node('move', anonymous=True)
-#
-# vis = Vision()
-# robot = vel_control()
-#
-# _, width, height = vis.camera_properties()
-#
-#
-# k_p = 1
-# k_i = 1
-# dt = 0.5
-#
-# def error_func(center_x_val):
-#     target = width/2
-#     err = (target - center_x_val)
-#     return err
-#
-# while(True):
-#     err = error_func(vis.get_center())
-#     robot.move(0.5, k_p*err)
 
-class PI_control(object):
-    """Very simplistic PI controller."""
+
+class PI_controller(object):
+    """PI controller."""
 
     def __init__(self, Kp=1.0, Ki=0, setpoint=0, sample_time=0.01, output_constraints=(None, None)):
         """New PI controller.

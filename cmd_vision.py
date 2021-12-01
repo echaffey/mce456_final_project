@@ -35,11 +35,11 @@ class Vision():
         self.CAMERA_WIDTH  = 960
         self.CAMERA_HEIGHT = 540
 
-        # Temporary variable to store the center of a pillar
-        self.center = -1
+        # Temporary variable to store the center of all 3 pillars
+        self.center = -np.ones(3)
 
     def camera_callback(self, image):
-        """Function identifies the red, green and blue pillars and returns the
+        """Function identifies the red, green or blue pillars and publishes the
            cartesian coordinate of its center location within the image"""
 
         # Convert the ROS image message into a workable OpenCV image
@@ -49,7 +49,7 @@ class Vision():
 
         # loc_center = np.array([])
 
-        for lower_bound, upper_bound in self.myColors:
+        for i, (lower_bound, upper_bound) in enumerate(self.myColors):
             # test if the color of each pixel is within the specified bounds
             mask = cv2.inRange(img_hsv, np.array(lower_bound), np.array(upper_bound))
             # calculate the contours of the masked image
@@ -66,7 +66,8 @@ class Vision():
                 center,_,_ = rect
 
                 # Set the center relative to the middle of the camera frame
-                self.center = center[0]-self.CAMERA_WIDTH/2
+                if self.center[i] is not None:
+                    self.center[i] = center[0]-self.CAMERA_WIDTH/2
                 # np.append(loc_center, center)
 
         # print("The center points of each detected shape: ", centerPointsArray)
@@ -87,6 +88,7 @@ class Vision():
             alpha_f: the scaling value multiplied with the focal length
             camera_width: the width of the image frame
             camera_height: the height of the image frame"""
+
         return self.ALPHA_F, self.CAMERA_WIDTH, self.CAMERA_HEIGHT
 
 
