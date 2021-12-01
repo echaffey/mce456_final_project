@@ -47,11 +47,11 @@ class PI_control(object):
         self.output_constraints = output_constraints
 
         self.proportional = 0
-        self.integral = 0
+        self.integral     = 0
 
         self.last_input  = None
         self.last_output = None
-        self.last_dt = None
+        self.last_dt     = None
 
 
     def _constrain(self, val, bounds):
@@ -76,7 +76,7 @@ class PI_control(object):
 
         # Set the time delta
         if dt is None:
-            dt = now - self.last_dt if (self.last_dt is not None) else 1e-16
+            dt = now - self.last_dt if (self.last_dt is not None) else 1e-10
         elif dt <= 0:
             raise ValueError('dt is negative, only positve values allowed.')
 
@@ -85,8 +85,9 @@ class PI_control(object):
             return self.last_output
 
         # Calculate the error and the change in input value from the previous value
+        # Max error is 580
         err = self.setpoint - input
-        print(dt)
+
         delta_input = input - (self.last_input if (self.last_input is not None) else input)
 
         # Calculate the proportional term value
@@ -98,6 +99,7 @@ class PI_control(object):
 
         # Calculate the final output and constriain to prevent runaway
         output = self.proportional + self.integral
+        print(output)
         output = self._constrain(output, self.output_constraints)
 
         # Store values for next iteration

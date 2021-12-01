@@ -14,8 +14,11 @@ robot = vel_control()
 _, width, height = vis.camera_properties()
 
 # Set controller to try to maintain pillar within the center of the screen
-# and limit the output from 0 to 2 rad/sec
-PI_angular_vel = PI_control(Ki=0.5, setpoint=width/2, output_constraints=(-1, 1))
+# and limit the output from -1.5 to 1.5 rad/sec
+PI_angular_vel = PI_control(Kp=2/width,
+                            Ki=1e-7, 
+                            setpoint=width/2,
+                            output_constraints=(-1.5, 1.5))
 
 # Set linear velocity controller to attempt to get the calculated area
 # of the pillar contour area to 100 with speed between 0 and 5 m/s
@@ -25,7 +28,7 @@ PI_linear_vel  = PI_control(setpoint=100, output_constraints=(0,0.5))
 # k_i = 1
 # dt = 0.5
 
-r = rospy.Rate(5)  # 5Hz loop
+r = rospy.Rate(10)  # 5Hz loop
 while(True):
 
     w = PI_angular_vel(vis.get_center())

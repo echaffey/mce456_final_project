@@ -69,7 +69,7 @@ class vel_control:
         rospy.init_node('move', anonymous=True)
 
         # Set sleep rate in Hz
-        self.rate = rospy.Rate(1)
+        # self.rate = rospy.Rate(10)
 
         # create a publisher object to send the twist message
         # Twist is the common_msg type that includes linear and angular velocity parameters
@@ -88,12 +88,12 @@ class vel_control:
 
 
         # print(self.x, self.y, self.z)
-        self.rate.sleep()
+        # self.rate.sleep()
 
     def publish_vel_control(self, vel_control_msg):
         # Publish the message to "vel_control"
         self.vel_pub.publish(vel_control_msg)
-        self.rate.sleep()
+        # self.rate.sleep()
 
 
     def move_forward(self):

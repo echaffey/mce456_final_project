@@ -64,7 +64,9 @@ class Vision():
                 cv2.drawContours(img_contours, [box], 0, (0, 255, 255),3)
 
                 center,_,_ = rect
-                self.center = center[0]
+
+                # Set the center relative to the middle of the camera frame
+                self.center = center[0]-self.CAMERA_WIDTH/2
                 # np.append(loc_center, center)
 
         # print("The center points of each detected shape: ", centerPointsArray)
