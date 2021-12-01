@@ -40,12 +40,14 @@ def run():
     i = 0
     cent = np.array(3)
 
+    rospy.sleep(2)
+    print(robot.orientation.z)
+
     while(time.time() - ref_time <= 4*np.pi):
 
         robot.seek()
         # print(vis.get_center()[1])
         if vis.get_center()[i] is not None:
-            print('in')
             if vis.get_center()[i] <= 20 and vis.get_center()[i] >= -20:
                 if robot.orientation is not None:
                     # cent[i] = robot.orientation.z

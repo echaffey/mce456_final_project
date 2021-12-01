@@ -62,9 +62,9 @@ class vel_control:
     def __init__(self):
 
         # Position and orientation variables
-        self.x = None
-        self.y = None
-        self.z = None
+        self.x = 0
+        self.y = 0
+        self.z = 0
         self.orientation = None
 
         # Create a node instance for the velocity controller with name 'move'

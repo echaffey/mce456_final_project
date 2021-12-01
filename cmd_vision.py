@@ -71,7 +71,7 @@ class Vision():
                 # Set the center relative to the middle of the camera frame
                 # if self.center[i] is not None:
                 self.center[i] = r_center[0]-self.CAMERA_WIDTH
-                print(self.center[1], i)
+                # print(self.center[1], i)
                 # Sets the area of the found contour. Larger area on screen
                 # means that more of the contour is in view.
                 if self.areas is not None:
