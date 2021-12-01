@@ -35,12 +35,14 @@ class Vision():
         self.CAMERA_WIDTH  = 960
         self.CAMERA_HEIGHT = 540
 
-        # Temporary variable to store the center of all 3 pillars
-        self.center = -np.ones(3)
+        # Store the center and areas of all 3 pillars
+        self.center = [None, None, None]
+        self.areas  = None
 
     def camera_callback(self, image):
         """Function identifies the red, green or blue pillars and publishes the
-           cartesian coordinate of its center location within the image"""
+           cartesian coordinate of its center location within the image to
+           /camera/rgb/image_raw/image_with_contours"""
 
         # Convert the ROS image message into a workable OpenCV image
         img = self.bridge_object.imgmsg_to_cv2(image, desired_encoding="bgr8")
@@ -63,11 +65,21 @@ class Vision():
 
                 cv2.drawContours(img_contours, [box], 0, (0, 255, 255),3)
 
-                center,_,_ = rect
+                # extract center and dimensions from the contour boundary box
+                r_center, (r_width, r_height), _ = rect
 
                 # Set the center relative to the middle of the camera frame
-                if self.center[i] is not None:
-                    self.center[i] = center[0]-self.CAMERA_WIDTH/2
+                # if self.center[i] is not None:
+                self.center[i] = r_center[0]-self.CAMERA_WIDTH
+                print(self.center[1], i)
+                # Sets the area of the found contour. Larger area on screen
+                # means that more of the contour is in view.
+                if self.areas is not None:
+                    if (r_width * r_height) > self.areas[i]:
+                        self.areas[i] = r_width * r_height
+
+                else:
+                    self.areas = np.empty(3)
                 # np.append(loc_center, center)
 
         # print("The center points of each detected shape: ", centerPointsArray)
@@ -82,6 +94,12 @@ class Vision():
 
     def get_center(self):
         return self.center
+
+    def get_pillar_areas(self):
+        if self.areas is not None:
+            return self.areas
+        else:
+            return np.empty(3)
 
     def camera_properties(self):
         """Returns the camera properties

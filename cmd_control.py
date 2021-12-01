@@ -61,9 +61,11 @@ class vel_control:
 
     def __init__(self):
 
-        self.x = -1
-        self.y = -1
-        self.z = -1
+        # Position and orientation variables
+        self.x = None
+        self.y = None
+        self.z = None
+        self.orientation = None
 
         # Create a node instance for the velocity controller with name 'move'
         rospy.init_node('move', anonymous=True)
@@ -76,8 +78,10 @@ class vel_control:
         self.vel_pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         self.pos_sub = rospy.Subscriber('/odom', Odometry, self.odom_callback)
 
-        # create a Twist message object
+        # create a message objects
         self.vel_control_msg = Twist()
+        self.odom_msg        = Odometry()
+
 
     def odom_callback(self, msg):
 
@@ -85,9 +89,10 @@ class vel_control:
         self.x = msg.pose.pose.position.x
         self.y = msg.pose.pose.position.y
         self.z = msg.pose.pose.position.z
+        self.orientation = msg.pose.pose.orientation
 
 
-        # print(self.x, self.y, self.z)
+        # print(self.orientation)
         # self.rate.sleep()
 
     def publish_vel_control(self, vel_control_msg):
@@ -98,10 +103,8 @@ class vel_control:
 
     def move_forward(self):
         linear_velocity_x = 0.5  # this is in meters per second
-        # angular_velocity_z = 0.0  # this is in radians per second
         # Filling the Twist message
         self.vel_control_msg.linear.x = linear_velocity_x
-        # self.vel_control_msg.angular.z = angular_velocity_z
         # Send the Twist message to the publishing function
         self.publish_vel_control(self.vel_control_msg)
 
@@ -145,6 +148,25 @@ class vel_control:
         self.vel_control_msg.angular.z = new_angluar_vel
         self.publish_vel_control(self.vel_control_msg)
 
+    def seek(self, dir='r', echo=False):
+        """Rotate one full turn.
+            :param dir: direction to rotate.
+            .. r -> right
+            .. l -> left
+            :param echo: if True, report current position and orientation."""
+
+        # print('Seeking...')
+
+        linear_velocity_x  = 0
+        angular_velocity_z = -0.5 if dir == 'r' else 0.5
+
+        self.vel_control_msg.linear.x = linear_velocity_x
+        self.vel_control_msg.angular.z = angular_velocity_z
+        self.publish_vel_control(self.vel_control_msg)
+
+        pos = (self.x, self.y, self.z)
+
+        if echo: return (pos, self.orientation)
 
     # def robot_controller(self):
     #     time.sleep(1)
