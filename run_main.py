@@ -6,6 +6,7 @@ import numpy as np
 from cmd_vision import Vision
 from cmd_control import vel_control
 from control import PI_controller
+from lidar_new import Lidar
 
 
 # Indexing constants
@@ -16,6 +17,7 @@ def run():
 
     vis   = Vision()
     robot = vel_control()
+    laser = Lidar()
 
     _, width, height = vis.camera_properties()
 
@@ -36,25 +38,30 @@ def run():
     p_blue = np.empty(1)
 
 
-    ref_time = time.time()
+
     i = 0
     cent = np.array(3)
 
     rospy.sleep(2)
-    print(robot.orientation.z)
+
+    ref_time = time.time()
+    # print(robot.orientation.z)
 
     while(time.time() - ref_time <= 4*np.pi):
 
         robot.seek()
-        # print(vis.get_center()[1])
-        if vis.get_center()[i] is not None:
-            if vis.get_center()[i] <= 20 and vis.get_center()[i] >= -20:
-                if robot.orientation is not None:
-                    # cent[i] = robot.orientation.z
-                    # print(robot.orientation.z)
-                    print(f'found {i}')
+        print(laser.get_closest())
+        # print(laser.get_ranges())
 
-                    i += 1
+        # print(vis.get_center()[1])
+        # if vis.get_center()[i] is not None:
+        #     if vis.get_center()[i] <= 20 and vis.get_center()[i] >= -20:
+        #         if robot.orientation is not None:
+        #             # cent[i] = robot.orientation.z
+        #             # print(robot.orientation.z)
+        #             print(f'found {i}')
+        #
+        #             i += 1
         # np.append(p_red, vis.get_pillar_areas()[0])
         # np.append(p_blue, vis.get_pillar_areas()[1])
         # np.append(p_green, vis.get_pillar_areas()[2])
