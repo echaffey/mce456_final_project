@@ -7,6 +7,8 @@ from cmd_control import vel_control
 from control import PI_controller
 from lidar_new import Lidar
 
+import numpy as np
+
 
 class Brain():
 
@@ -15,8 +17,14 @@ class Brain():
         rospy.init_node('move', anonymous=True)
 
         self.vision = Vision()
-        self.move   = vel_control()
+        self.robot   = vel_control()
         self.PID    = PI_controller()
         self.lidar  = Lidar()
 
-        
+
+    def search_for_pillars(self):
+
+        robot_pos, robot_orientation = robot.get_pos_orientation()
+
+        while(robot_orientation[2]<2*np.pi):
+            robot.move(0, 0.5)

@@ -82,7 +82,10 @@ class vel_control:
         self.vel_control_msg = Twist()
         self.odom_msg        = Odometry()
 
+    def get_pos_orientation(self):
+        return (self.x, self.y, self.z), self.orientation
 
+        
     def odom_callback(self, msg):
 
         # Update the robots current position and orientation
