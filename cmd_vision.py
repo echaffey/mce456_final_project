@@ -17,14 +17,17 @@ class Vision():
 
         # The cylinder colors are red, green, and blue. Here we are defining upper and lower bounds for each color.
         # Once the ranges are made, the  program wil be able to decide which color is which.
-        self.lower_red   = [175, 100, 20]
-        self.upper_red   = [5, 255, 255]
+        self.lower_red   = [170, 70, 50]
+        self.upper_red   = [180, 255, 255]
+        self.lower_red2  = [0, 70, 50]
+        self.upper_red2  = [10, 255, 255]
         self.lower_green = [55, 100, 20]
         self.upper_green = [65, 255, 255]
         self.lower_blue  = [110, 100, 20]
         self.upper_blue  = [130, 255, 255]
 
         self.myColors = np.array([[self.lower_red, self.upper_red],
+                         [self.lower_red2, self.upper_red2],
                          [self.lower_green, self.upper_green],
                          [self.lower_blue, self.upper_blue]])
 
@@ -36,14 +39,13 @@ class Vision():
         self.CAMERA_HEIGHT = 540
 
         # Store the center and areas of all 3 pillars
-        self.center = [None, None, None]
+        self.center = [None, None, None, None]
         self.areas  = None
 
     def camera_callback(self, image):
         """Function identifies the red, green or blue pillars and publishes the
            cartesian coordinate of its center location within the image to
-           /camera/rgb/image_raw/image_with_contours"""
-
+           /camera/rgb/image_raw/image_with_contour"""
         # Convert the ROS image message into a workable OpenCV image
         img = self.bridge_object.imgmsg_to_cv2(image, desired_encoding="bgr8")
         img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
