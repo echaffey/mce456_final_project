@@ -23,12 +23,21 @@ class Brain():
         self.PID    = PI_controller()
         self.lidar  = Lidar()
 
+        # Set controller to try to maintain pillar within the center of the screen
+        # and limit the output from -1.5 to 1.5 rad/sec
+        self.PI_angular_vel = PI_controller(Kp=2/self.vision.CAMERA_WIDTH,
+                                    Ki=1e-7,
+                                    setpoint=self.vision.CAMERA_WIDTH/2,
+                                    output_constraints=(-1.5, 1.5))
+
         self.center_yaw = [None, None, None]
 
         self.run()
 
 
     def search_for_pillars(self):
+        """Spin one full rotation and identify each of the pillars. Yaw angle
+           is logged when a pillar is identified."""
 
         yaw = 0.0
 
@@ -58,8 +67,25 @@ class Brain():
         print(self.center_yaw)
         self.robot.move(0,0)
 
-    def go(self):
-        while(self.get_distance() > 1.25)
+    def go(self, angle):
+        _, _, yaw = self.get_RPY()
+        print(yaw)
+        # Rotate to angle corresponding to pillar
+        while(yaw <= self.center_yaw[angle] ):
+            self.robot.move(0, 0.5)
+
+        while(self.get_distance() > 1.25):
+
+            w = self.PI_angular_vel(self.vision.get_center()[angle])
+            self.robot.move(0.5, w)
+
+
+    def get_RPY(self):
+        robot_pos, robot_orientation = self.robot.get_pos_orientation()
+        robot_quaternion = [robot_orientation.x, robot_orientation.y, robot_orientation.z, robot_orientation.w]
+        roll, pitch, yaw = euler_from_quaternion(robot_quaternion)
+
+        return roll, pitch, yaw
 
     def get_distance(self):
         print(self.lidar.get_closest())
@@ -67,6 +93,11 @@ class Brain():
     def run(self):
         rospy.sleep(2)
         self.search_for_pillars()
+
+        for angle in range(len(self.center_yaw)):
+            self.go(angle)
+
+
 
 if __name__ == '__main__':
     brain = Brain()
