@@ -23,6 +23,8 @@ class Brain():
         self.PID    = PI_controller()
         self.lidar  = Lidar()
 
+        self.center_yaw = [None, None, None]
+
         self.run()
 
 
@@ -40,18 +42,27 @@ class Brain():
             # Rotate
             self.robot.move(0, 0.5)
 
-            print(self.vision.get_center())
+            # print(self.vision.get_center()[0])
+            for i in range(len(self.vision.get_center())):
+                if(self.vision.get_center()[i] is not None):
+                    # if center of pillar is near the center of the image frame
+                    if(self.vision.get_center()[i] <= 100 and self.vision.get_center()[i] >= -100):
+                        self.center_yaw[i] = yaw
+                        break
 
             # Convert angle measure to 0 to 360 degrees
             if yaw < 0:
                 yaw = 2*np.pi+yaw
                 # print(yaw)
-            else:
-                pass
-                # print(yaw)
 
+        print(self.center_yaw)
         self.robot.move(0,0)
 
+    def go(self):
+        while(self.get_distance() > 1.25)
+
+    def get_distance(self):
+        print(self.lidar.get_closest())
 
     def run(self):
         rospy.sleep(2)
