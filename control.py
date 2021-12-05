@@ -7,7 +7,7 @@ class PI_controller(object):
     """PI controller."""
 
     def __init__(self, Kp=1.0, Ki=0, setpoint=0, sample_time=0.01, output_constraints=(None, None)):
-        """New PI controller.
+        """PI controller.
 
             :param Kp: proportional gain, Kp
             :param Ki: integral gain, Ki
@@ -76,7 +76,7 @@ class PI_controller(object):
 
         # Calculate the final output and constriain to prevent runaway
         output = self.proportional + self.integral
-        # print(output)
+        print(output)
         output = self._constrain(output, self.output_constraints)
 
         # Store values for next iteration

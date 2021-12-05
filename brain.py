@@ -26,9 +26,14 @@ class Brain():
 
         # Set controller to try to maintain pillar within the center of the screen
         # and limit the output from -1.5 to 1.5 rad/sec
-        self.PI_angular_vel = PI_controller(Kp=2/self.vision.CAMERA_WIDTH,
+        self.PI_angular_vel = PI_controller(
+                                    # Proportional gain
+                                    Kp=1/self.vision.CAMERA_WIDTH,
+                                    # Integral gain
                                     Ki=1e-7,
-                                    setpoint=self.vision.CAMERA_WIDTH/2,
+                                    # Try to maintain in center of the screen
+                                    setpoint=0,
+                                    # No faster than 1.5 rad/sec angular velocity
                                     output_constraints=(-1.5, 1.5))
 
         self.center_yaw = [None, None, None]
@@ -64,7 +69,6 @@ class Brain():
                         self.center_yaw[i] = yaw
 
                     else:
-                        # print(f'{i}, {np.abs(center)}, {self.pillar_center[i]}, {self.center_yaw[i]}')
                         # Find the yaw angle where the pillar is closest to the center of the camera frame
                         if np.abs(center) < self.pillar_center[i]:
                             self.pillar_center[i] = np.abs(center)
@@ -78,7 +82,7 @@ class Brain():
         # Stop moving
         self.robot.move(0,0)
 
-    def go(self, angle):
+    def go(self, angle, color_index):
         _, _, yaw = self.get_RPY_degrees()
 
         # Rotate to angle corresponding to pillar
@@ -92,11 +96,13 @@ class Brain():
         # Stop rotating
         self.robot.move(0,0)
 
-        # while(True):#self.get_distance() > 1.25):
-        #
-        #     w = self.PI_angular_vel(self.pillar_center[0])
-        #     self.robot.move(0.5, w)
+        # Go to within 1.2m of the pillar
+        while(self.get_distance() > 1.20):
+            print(self.vision.get_center()[color_index])
+            w = self.PI_angular_vel(self.vision.get_center()[color_index])
+            self.robot.move(0.5, w)
 
+        self.robot.move(0,0)
 
     def get_RPY_degrees(self):
         robot_pos, robot_orientation = self.robot.get_pos_orientation()
@@ -109,16 +115,18 @@ class Brain():
         return roll, pitch, yaw
 
     def get_distance(self):
-        print(self.lidar.get_closest())
+        dist, _ = self.lidar.get_closest()
+
+        return dist
 
     def run(self):
         rospy.sleep(2)
 
         self.search_for_pillars()
-        self.go(self.center_yaw[2])
+        # self.go(self.center_yaw[2])
 
-        # for angle in self.center_yaw:
-        #     self.go(angle)
+        for index, angle in enumerate(self.center_yaw):
+            self.go(angle, index)
 
 
 
