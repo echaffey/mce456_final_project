@@ -55,21 +55,22 @@ class Brain():
             # print(self.vision.get_center()[0])
 
             found_center = self.vision.get_center()
-            for i in range(len(found_center)):
-                # if(self.vision.get_center()[i] is not None):
-                #     # if center of pillar is near the center of the image frame
-                #     if(self.vision.get_center()[i] <= 100 and self.vision.get_center()[i] >= -100):
-                #         self.center_yaw[i] = yaw
-                #         # print(yaw)
-                #         break
-                # print(found_center[1])
-                if found_center[i] is not None:
-                    if self.pillar_center[i] is not None:
-                        print(f'{i}, {np.abs(found_center[i])}, {self.pillar_center[i]}, {yaw}')
-                        if np.abs(found_center[i]) < self.pillar_center[i]:
-                            self.pillar_center[i] = np.abs(found_center[i])
+            
+            for i, center in enumerate(found_center):
+                if center is not None:
+
+                    # Initial conditions
+                    if self.pillar_center[i] is None:
+                        self.pillar_center[i] = np.abs(center)
+                        self.center_yaw[i] = yaw
+
+                    else:
+                        # print(f'{i}, {np.abs(center)}, {self.pillar_center[i]}, {self.center_yaw[i]}')
+                        # Find the yaw angle where the pillar is closest to the center of the camera frame
+                        if np.abs(center) < self.pillar_center[i]:
+                            self.pillar_center[i] = np.abs(center)
                             self.center_yaw[i] = yaw
-                    else: self.pillar_center[i] = np.abs(found_center[i])
+                    # else: self.pillar_center[i] = np.abs(center)
 
             # Convert angle measure to 0 to 360 degrees
             if yaw < 0:
