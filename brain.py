@@ -57,24 +57,29 @@ class Brain():
                     # if center of pillar is near the center of the image frame
                     if(self.vision.get_center()[i] <= 100 and self.vision.get_center()[i] >= -100):
                         self.center_yaw[i] = yaw
+                        # print(yaw)
                         break
 
             # Convert angle measure to 0 to 360 degrees
             if yaw < 0:
                 yaw = 2*np.pi+yaw
-                # print(yaw)
+            # print(yaw)
 
-        print(self.center_yaw)
+        # Stop moving
         self.robot.move(0,0)
 
     def go(self, angle):
         _, _, yaw = self.get_RPY()
-        print(yaw)
+        # print(self.center_yaw[angle])
         # Rotate to angle corresponding to pillar
-        while(yaw <= self.center_yaw[angle] ):
-            self.robot.move(0, 0.5)
+        if self.center_yaw is not None and yaw is not None:
+            while(yaw <= self.center_yaw[angle] + 0.001 and yaw >= self.center_yaw[angle]-0.001):
+                self.robot.move(0, 0.5)
 
-        while(self.get_distance() > 1.25):
+        # Stop rotating
+        self.robot.move(0,0)
+
+        while(True):#self.get_distance() > 1.25):
 
             w = self.PI_angular_vel(self.vision.get_center()[angle])
             self.robot.move(0.5, w)
