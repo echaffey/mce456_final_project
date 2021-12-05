@@ -17,6 +17,7 @@ class Brain():
     def __init__(self):
 
         rospy.init_node('move', anonymous=True)
+        # rospy.Rate(1)
 
         self.vision = Vision()
         self.robot  = vel_control()
@@ -33,6 +34,8 @@ class Brain():
         self.center_yaw = [None, None, None]
         self.pillar_center = [None, None, None]
 
+        self.colors = ['RED', 'BLUE', 'GREEN']
+
         self.run()
 
 
@@ -41,21 +44,17 @@ class Brain():
            is logged when a pillar is identified."""
 
         yaw = 0.0
+        print('SEEKING....')
 
         # While yaw angle is <= than 359 degrees
         while(yaw <= (2*np.pi - np.pi/180)):
-            # Get orientation in quaternions and convert to Euler coords
-            robot_pos, robot_orientation = self.robot.get_pos_orientation()
-            robot_quaternion = [robot_orientation.x, robot_orientation.y, robot_orientation.z, robot_orientation.w]
-            roll, pitch, yaw = euler_from_quaternion(robot_quaternion)
+            roll, pitch, yaw = self.get_RPY_degrees()
 
             # Rotate
             self.robot.move(0, 0.5)
 
-            # print(self.vision.get_center()[0])
-
             found_center = self.vision.get_center()
-            
+
             for i, center in enumerate(found_center):
                 if center is not None:
 
@@ -70,37 +69,42 @@ class Brain():
                         if np.abs(center) < self.pillar_center[i]:
                             self.pillar_center[i] = np.abs(center)
                             self.center_yaw[i] = yaw
-                    # else: self.pillar_center[i] = np.abs(center)
 
-            # Convert angle measure to 0 to 360 degrees
-            if yaw < 0:
-                yaw = 2*np.pi+yaw
-            # print(yaw)
+        for i in range(3):
+            print(f'Found {self.colors[i]}')
+            print(f'     in camera frame at x = {self.pillar_center[i]}')
+            print(f'     in world frame at orientation (0, 0, {self.center_yaw[i]})')
 
         # Stop moving
         self.robot.move(0,0)
 
     def go(self, angle):
-        _, _, yaw = self.get_RPY()
-        # print(self.center_yaw[angle])
+        _, _, yaw = self.get_RPY_degrees()
+
         # Rotate to angle corresponding to pillar
-        if self.center_yaw is not None and yaw is not None:
-            while(yaw <= self.center_yaw[angle] + 0.001 and yaw >= self.center_yaw[angle]-0.001):
-                self.robot.move(0, 0.5)
+        if angle is not None:
+            while(np.abs(angle-yaw) > 1):
+                _, _, yaw = self.get_RPY_degrees()
+                # print(angle-yaw)
+
+                self.robot.move(0, 0.5*(angle-yaw))
 
         # Stop rotating
         self.robot.move(0,0)
 
-        while(True):#self.get_distance() > 1.25):
+        # while(True):#self.get_distance() > 1.25):
+        #
+        #     w = self.PI_angular_vel(self.pillar_center[0])
+        #     self.robot.move(0.5, w)
 
-            w = self.PI_angular_vel(self.vision.get_center()[angle])
-            self.robot.move(0.5, w)
 
-
-    def get_RPY(self):
+    def get_RPY_degrees(self):
         robot_pos, robot_orientation = self.robot.get_pos_orientation()
         robot_quaternion = [robot_orientation.x, robot_orientation.y, robot_orientation.z, robot_orientation.w]
         roll, pitch, yaw = euler_from_quaternion(robot_quaternion)
+
+        if yaw < 0:
+            yaw = 2*np.pi+yaw
 
         return roll, pitch, yaw
 
@@ -109,10 +113,12 @@ class Brain():
 
     def run(self):
         rospy.sleep(2)
-        self.search_for_pillars()
 
-        for angle in range(len(self.center_yaw)):
-            self.go(angle)
+        self.search_for_pillars()
+        self.go(self.center_yaw[2])
+
+        # for angle in self.center_yaw:
+        #     self.go(angle)
 
 
 

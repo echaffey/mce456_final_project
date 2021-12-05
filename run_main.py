@@ -71,7 +71,7 @@ def run():
 
     order = [RED, GREEN, BLUE]
 
-    r = rospy.Rate(10)  # 10Hz loop
+    r = rospy.Rate(1)  # 10Hz loop
     ref_time = time.time()
     while(True):
 
