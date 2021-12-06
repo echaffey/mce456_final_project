@@ -76,7 +76,7 @@ class PI_controller(object):
 
         # Calculate the final output and constriain to prevent runaway
         output = self.proportional + self.integral
-        print(output)
+        # print(output)
         output = self._constrain(output, self.output_constraints)
 
         # Store values for next iteration

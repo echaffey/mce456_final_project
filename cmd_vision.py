@@ -48,7 +48,7 @@ class Vision():
         img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         img_contours = img.copy()
 
-        # loc_center = np.array([])
+        # self.find_color(i, img_hsv, lower_bound, upper_bound)
 
         for i, (lower_bound, upper_bound) in enumerate(self.myColors):
             # test if the color of each pixel is within the specified bounds
@@ -62,7 +62,7 @@ class Vision():
                 box = cv2.boxPoints(rect)
                 box = np.int0(box)
 
-                cv2.drawContours(img_contours, [box], 0, (0, 255, 255),3)
+                # cv2.drawContours(img_contours, [box], 0, (0, 255, 255),3)
 
                 # extract center and dimensions from the contour boundary box
                 r_center, (r_width, r_height), _ = rect
@@ -73,12 +73,12 @@ class Vision():
 
                 # Sets the area of the found contour. Larger area on screen
                 # means that more of the contour is in view.
-                if self.areas is not None:
-                    if (r_width * r_height) > self.areas[i]:
-                        self.areas[i] = r_width * r_height
-
-                else:
-                    self.areas = np.empty(3)
+                # if self.areas is not None:
+                #     if (r_width * r_height) > self.areas[i]:
+                #         self.areas[i] = r_width * r_height
+                #
+                # else:
+                #     self.areas = np.empty(3)
                 # np.append(loc_center, center)
 
         # converting crop_img from cv to ros msg
@@ -88,6 +88,27 @@ class Vision():
 
     def get_center(self):
         return self.center
+
+    def find_color(self, color_index, img, lbound, ubound):
+
+        mask = cv2.inRange(img, lbound, ubound)
+        # calculate the contours of the masked image
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        for c in contours:
+            # find the minimum area of the contours
+            rect = cv2.minAreaRect(c)
+            # get the corner coordinates
+            box = cv2.boxPoints(rect)
+            box = np.int0(box)
+
+            # cv2.drawContours(img_contours, [box], 0, (0, 255, 255),3)
+
+            # extract center and dimensions from the contour boundary box
+            r_center, (r_width, r_height), _ = rect
+
+            # Set the center relative to the middle of the camera frame
+            # if self.center[i] is not None:
+            self.center[color_index] = r_center[0]-self.CAMERA_WIDTH
 
     def get_pillar_areas(self):
         if self.areas is not None:

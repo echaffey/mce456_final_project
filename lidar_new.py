@@ -44,6 +44,11 @@ class Lidar(object):
     def get_ranges(self):
         return self.ranges
 
+    def get_frontal_ranges(self):
+
+        front = self.ranges[(self.angles>1/4*np.pi) & (self.angles<3/4*np.pi)]
+        return min(front)
+
 
     def get_closest(self):
 

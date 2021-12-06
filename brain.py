@@ -24,25 +24,54 @@ class Brain():
         self.PID    = PI_controller()
         self.lidar  = Lidar()
 
+        robot_speed = 1 #m/s
+
         # Set controller to try to maintain pillar within the center of the screen
         # and limit the output from -1.5 to 1.5 rad/sec
         self.PI_angular_vel = PI_controller(
                                     # Proportional gain
-                                    Kp=1/self.vision.CAMERA_WIDTH,
+                                    Kp=(robot_speed/3)/self.vision.CAMERA_WIDTH,
                                     # Integral gain
-                                    Ki=1e-7,
+                                    Ki=1e-5,
                                     # Try to maintain in center of the screen
                                     setpoint=0,
                                     # No faster than 1.5 rad/sec angular velocity
                                     output_constraints=(-1.5, 1.5))
 
+        # Store orientation and position of pillars
         self.center_yaw = [None, None, None]
         self.pillar_center = [None, None, None]
 
-        self.colors = ['RED', 'BLUE', 'GREEN']
+        # Pillar colors
+        self.colors = ['RED', 'GREEN', 'BLUE']
+        self.found = [False, False, False]
+        self.mute_lidar = False
 
         self.run()
 
+
+    def search_2(self, color_index):
+
+        while(self.pillar_center[color_index] is None):
+
+            # Rotate
+            self.robot.move(0, 0.5)
+
+            found_center = self.vision.get_center()
+
+            if found_center[color_index] is not None:
+                self.pillar_center[color_index] = np.abs(found_center[color_index])
+                print(f'Found {self.colors[color_index]}')
+                print(f'     in camera frame at x = {self.pillar_center[color_index]}')
+                self.robot.move(0,0)
+
+    def go_2(self, color_index):
+        if(self.lidar.get_frontal_ranges() > 1.30):
+            while(self.get_distance() > 1.30):
+            # while(not self.found[color_index]):
+                print(self.vision.get_center()[color_index])
+                w = self.PI_angular_vel(self.vision.get_center()[color_index])
+                self.robot.move(1, w)
 
     def search_for_pillars(self):
         """Spin one full rotation and identify each of the pillars. Yaw angle
@@ -52,11 +81,11 @@ class Brain():
         print('SEEKING....')
 
         # While yaw angle is <= than 359 degrees
-        while(yaw <= (2*np.pi - np.pi/180)):
+        while(yaw <= (2*np.pi - 5*np.pi/180)):
             roll, pitch, yaw = self.get_RPY_degrees()
 
             # Rotate
-            self.robot.move(0, 0.5)
+            self.robot.move(0, 0.75)
 
             found_center = self.vision.get_center()
 
@@ -85,24 +114,33 @@ class Brain():
     def go(self, angle, color_index):
         _, _, yaw = self.get_RPY_degrees()
 
-        # Rotate to angle corresponding to pillar
+        # Rotate to angle corresponding to the target pillar
         if angle is not None:
             while(np.abs(angle-yaw) > 1):
                 _, _, yaw = self.get_RPY_degrees()
-                # print(angle-yaw)
-
                 self.robot.move(0, 0.5*(angle-yaw))
 
         # Stop rotating
         self.robot.move(0,0)
 
         # Go to within 1.2m of the pillar
-        while(self.get_distance() > 1.20):
-            print(self.vision.get_center()[color_index])
-            w = self.PI_angular_vel(self.vision.get_center()[color_index])
-            self.robot.move(0.5, w)
+        if(self.lidar.get_frontal_ranges() > 1.30):
+            while(self.get_distance() > 1.30):
+            # while(not self.found[color_index]):
+                # print(self.vision.get_center()[color_index])
+                w = self.PI_angular_vel(self.vision.get_center()[color_index])
+                self.robot.move(1, w)
 
-        self.robot.move(0,0)
+            print(f'found {self.colors[color_index]}')
+            self.robot.move(0,0)
+
+    def find_next(self, index):
+        _, _, yaw = self.get_RPY_degrees()
+
+        if angle is not None:
+            while(np.abs(angle-yaw) > 1):
+                _, _, yaw = self.get_RPY_degrees()
+            self.robot.move(0,0)
 
     def get_RPY_degrees(self):
         robot_pos, robot_orientation = self.robot.get_pos_orientation()
@@ -120,13 +158,20 @@ class Brain():
         return dist
 
     def run(self):
+        # Give time for subscribers to receive messages
         rospy.sleep(2)
 
-        self.search_for_pillars()
+        # self.search_for_pillars()
+        self.search_2(0)
+        self.go_2(0)
         # self.go(self.center_yaw[2])
 
-        for index, angle in enumerate(self.center_yaw):
-            self.go(angle, index)
+        # for i in range(len(self.center_yaw)):
+        # # for index, angle in enumerate(self.center_yaw):
+        #     print(f'finding {self.colors[i]}')
+        #     self.go(self.center_yaw[i], i)
+            # if(self.center_yaw[i+1] is not None):
+            #     self.find_next(self.center_yaw[i+1], i+1)
 
 
 
