@@ -30,6 +30,13 @@ class PI_controller(object):
         self.last_output = None
         self.last_dt     = None
 
+    def clear_gains(self):
+        self.proportional = 0
+        self.integral     = 0
+
+        self.last_input  = None
+        self.last_output = None
+        self.last_dt     = None
 
     def _constrain(self, val, bounds):
         """Constrain the value to within a boundary of values"""

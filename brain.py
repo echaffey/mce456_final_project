@@ -24,13 +24,17 @@ class Brain():
         self.PID    = PI_controller()
         self.lidar  = Lidar()
 
-        robot_speed = 1 #m/s
+        # Set default speed
+        self.robot_speed = 1 # m/s
+
+        # Set default rotation direction
+        self.rot_dir = 0.5   # rad/s
 
         # Set controller to try to maintain pillar within the center of the screen
         # and limit the output from -1.5 to 1.5 rad/sec
         self.PI_angular_vel = PI_controller(
                                     # Proportional gain
-                                    Kp=(robot_speed/3)/self.vision.CAMERA_WIDTH,
+                                    Kp=(1/(self.robot_speed*2))/self.vision.CAMERA_WIDTH,
                                     # Integral gain
                                     Ki=1e-5,
                                     # Try to maintain in center of the screen
@@ -45,29 +49,37 @@ class Brain():
         # Pillar colors
         self.colors = ['RED', 'GREEN', 'BLUE']
         self.found = [False, False, False]
-        self.mute_lidar = False
 
         self.run()
 
 
     def search_2(self, color_index):
 
-        if(self.lidar.get_frontal_dist() <= 1.25):
+        # Make sure its clear of the pillar before it starts searching again
+        if(self.lidar.get_frontal_dist() <= 1.35):
 
+            # Rotate away from the side closest to the pillar
             right, left = self.lidar.get_frontal_side_dist()
-            rot = 0.5 if right > left else -0.5
+            self.rot_dir = 0.5 if right > left else -0.5
 
-            while(self.lidar.get_frontal_dist() <= 1.25):
-                self.robot.move(-0.25, rot)
+            # Reverse and rotate until clear of the pillar
+            while(self.lidar.get_frontal_dist() <= 1.35):
+                self.robot.move(-0.25, self.rot_dir)
 
+
+        # Check to make sure the pillar hasnt been found
         while(self.pillar_center[color_index] is None):
 
             # Rotate
-            self.robot.move(0, 0.5)
+            self.robot.move(0, self.rot_dir)
 
+            # Get the list of pillar center locations
             found_center = self.vision.get_center()
 
             if found_center[color_index] is not None:
+                while(found_center[color_index] > 100):
+                    found_center = self.vision.get_center()
+                
                 self.pillar_center[color_index] = np.abs(found_center[color_index])
                 print(f'Found {self.colors[color_index]}')
                 print(f'     in camera frame at x = {self.pillar_center[color_index]}')
@@ -75,16 +87,19 @@ class Brain():
 
     def go_2(self, color_index):
 
+        # Check to make sure it is not within the minimum distance previous pillar
         if(self.lidar.get_frontal_dist() > 1.25):
-            # while(self.get_distance() > 1.30):
+
+            # 50 Hz refresh
             rate = rospy.Rate(50)
             while(self.lidar.get_frontal_dist() > 1.25):
-
+                # PID control loop
                 w = self.PI_angular_vel(self.vision.get_center()[color_index])
-                self.robot.move(1, w)
+                self.robot.move(self.robot_speed, w)
                 rate.sleep()
 
             self.robot.move(0,0)
+            self.PID.clear_gains()
 
     def search_for_pillars(self):
         """Spin one full rotation and identify each of the pillars. Yaw angle
@@ -177,7 +192,10 @@ class Brain():
         # self.search_for_pillars()
         i = 0
         while(True):
-            if i > 2: i =0
+            if i > 2:
+                i = 0
+                self.pillar_center = [None, None, None]
+
             self.search_2(i)
             self.go_2(i)
 
