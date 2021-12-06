@@ -52,6 +52,10 @@ class Brain():
 
     def search_2(self, color_index):
 
+        if(self.lidar.get_frontal_ranges() <= 1.25):
+            while(self.lidar.get_frontal_ranges() <= 1.25):
+                self.robot.move(0, 0.15)
+
         while(self.pillar_center[color_index] is None):
 
             # Rotate
@@ -66,12 +70,19 @@ class Brain():
                 self.robot.move(0,0)
 
     def go_2(self, color_index):
-        if(self.lidar.get_frontal_ranges() > 1.30):
-            while(self.get_distance() > 1.30):
+
+        if(self.lidar.get_frontal_ranges() > 1.25):
+            # while(self.get_distance() > 1.30):
+            rate = rospy.Rate(50)
+            while(self.lidar.get_frontal_ranges() > 1.25):
+                # print(self.lidar.get_frontal_ranges())
             # while(not self.found[color_index]):
-                print(self.vision.get_center()[color_index])
+                # print(self.vision.get_center()[color_index])
                 w = self.PI_angular_vel(self.vision.get_center()[color_index])
                 self.robot.move(1, w)
+                rate.sleep()
+
+            self.robot.move(0,0)
 
     def search_for_pillars(self):
         """Spin one full rotation and identify each of the pillars. Yaw angle
@@ -162,17 +173,9 @@ class Brain():
         rospy.sleep(2)
 
         # self.search_for_pillars()
-        self.search_2(0)
-        self.go_2(0)
-        # self.go(self.center_yaw[2])
-
-        # for i in range(len(self.center_yaw)):
-        # # for index, angle in enumerate(self.center_yaw):
-        #     print(f'finding {self.colors[i]}')
-        #     self.go(self.center_yaw[i], i)
-            # if(self.center_yaw[i+1] is not None):
-            #     self.find_next(self.center_yaw[i+1], i+1)
-
+        for i in [1, 2, 0]:
+            self.search_2(i)
+            self.go_2(i)
 
 
 if __name__ == '__main__':
