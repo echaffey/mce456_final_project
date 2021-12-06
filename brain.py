@@ -52,9 +52,13 @@ class Brain():
 
     def search_2(self, color_index):
 
-        if(self.lidar.get_frontal_ranges() <= 1.25):
-            while(self.lidar.get_frontal_ranges() <= 1.25):
-                self.robot.move(0, 0.15)
+        if(self.lidar.get_frontal_dist() <= 1.25):
+
+            right, left = self.lidar.get_frontal_side_dist()
+            rot = 0.5 if right > left else -0.5
+
+            while(self.lidar.get_frontal_dist() <= 1.25):
+                self.robot.move(-0.25, rot)
 
         while(self.pillar_center[color_index] is None):
 
@@ -71,13 +75,11 @@ class Brain():
 
     def go_2(self, color_index):
 
-        if(self.lidar.get_frontal_ranges() > 1.25):
+        if(self.lidar.get_frontal_dist() > 1.25):
             # while(self.get_distance() > 1.30):
             rate = rospy.Rate(50)
-            while(self.lidar.get_frontal_ranges() > 1.25):
-                # print(self.lidar.get_frontal_ranges())
-            # while(not self.found[color_index]):
-                # print(self.vision.get_center()[color_index])
+            while(self.lidar.get_frontal_dist() > 1.25):
+
                 w = self.PI_angular_vel(self.vision.get_center()[color_index])
                 self.robot.move(1, w)
                 rate.sleep()
@@ -173,9 +175,13 @@ class Brain():
         rospy.sleep(2)
 
         # self.search_for_pillars()
-        for i in [1, 2, 0]:
+        i = 0
+        while(True):
+            if i > 2: i =0
             self.search_2(i)
             self.go_2(i)
+
+            i += 1
 
 
 if __name__ == '__main__':

@@ -45,8 +45,14 @@ class Lidar(object):
         return self.ranges
 
 
-    def get_frontal_ranges(self):
+    def get_frontal_dist(self):
 
+        min_left, min_right = self.get_frontal_side_dist()
+
+        # range_test = self.ranges[0] if self.ranges[0] < 10 else 10
+        return min([min_left, min_right])
+
+    def get_frontal_side_dist(self):
         right = self.ranges[(self.angles<=1/4*np.pi)]
         left = self.ranges[(self.angles>7/4*np.pi) & (self.angles<2*np.pi)]
         # print(self.ranges)
@@ -54,8 +60,7 @@ class Lidar(object):
         min_left = min(left) if min(left) < 10 else 10
         min_right = min(right) if min(right) < 10 else 10
 
-        # range_test = self.ranges[0] if self.ranges[0] < 10 else 10
-        return min([min_left, min_right])
+        return min_left, min_right
 
 
     def get_closest(self):
