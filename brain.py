@@ -40,9 +40,9 @@ class Brain():
                                     # Proportional gain  (6,10,15)
                                     Kp=1,
                                     # Integral gain
-                                    Ki=1,
+                                    Ki=0,
                                     # Differential gain
-                                    Kd=1,
+                                    Kd=0,
                                     # Try to maintain in center of the screen
                                     setpoint=0,
                                     # No faster than 1.5 rad/sec angular velocity
