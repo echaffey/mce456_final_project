@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import rospy
 import cv2
 import numpy as np
@@ -35,80 +36,45 @@ class Vision():
         self.CAMERA_WIDTH  = 960
         self.CAMERA_HEIGHT = 540
 
-        # Store the center and areas of all 3 pillars
+        # Store the center
         self.center = [None, None, None]
-        self.areas  = None
+
 
     def camera_callback(self, image):
-        """Function identifies the red, green or blue pillars and publishes the
-           cartesian coordinate of its center location within the image to
-           /camera/rgb/image_raw/image_with_contour"""
+        """Function identifies the red, green or blue pillars center locations
+           within the camera frame"""
+
         # Convert the ROS image message into a workable OpenCV image
         img = self.bridge_object.imgmsg_to_cv2(image, desired_encoding="bgr8")
         img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         img_contours = img.copy()
 
-        # self.find_color(i, img_hsv, lower_bound, upper_bound)
-
+        # Loop through all colors and identify contours
         for i, (lower_bound, upper_bound) in enumerate(self.myColors):
+
             # test if the color of each pixel is within the specified bounds
             mask = cv2.inRange(img_hsv, np.array(lower_bound), np.array(upper_bound))
+
             # calculate the contours of the masked image
             contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
             for c in contours:
                 # find the minimum area of the contours
                 rect = cv2.minAreaRect(c)
+
                 # get the corner coordinates
                 box = cv2.boxPoints(rect)
                 box = np.int0(box)
-
-                # cv2.drawContours(img_contours, [box], 0, (0, 255, 255),3)
 
                 # extract center and dimensions from the contour boundary box
                 r_center, (r_width, r_height), _ = rect
 
                 # Set the center relative to the middle of the camera frame
-                # if self.center[i] is not None:
                 self.center[i] = r_center[0]-self.CAMERA_WIDTH
 
-                # Sets the area of the found contour. Larger area on screen
-                # means that more of the contour is in view.
-                # if self.areas is not None:
-                #     if (r_width * r_height) > self.areas[i]:
-                #         self.areas[i] = r_width * r_height
-                #
-                # else:
-                #     self.areas = np.empty(3)
-                # np.append(loc_center, center)
-
-        # converting crop_img from cv to ros msg
-        msg = self.bridge_object.cv2_to_imgmsg(img_contours, encoding="rgb8")
-        # Publishing the Image message
-        self.image_pub.publish(msg)
 
     def get_center(self):
         return self.center
 
-    def find_color(self, color_index, img, lbound, ubound):
-
-        mask = cv2.inRange(img, lbound, ubound)
-        # calculate the contours of the masked image
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        for c in contours:
-            # find the minimum area of the contours
-            rect = cv2.minAreaRect(c)
-            # get the corner coordinates
-            box = cv2.boxPoints(rect)
-            box = np.int0(box)
-
-            # cv2.drawContours(img_contours, [box], 0, (0, 255, 255),3)
-
-            # extract center and dimensions from the contour boundary box
-            r_center, (r_width, r_height), _ = rect
-
-            # Set the center relative to the middle of the camera frame
-            # if self.center[i] is not None:
-            self.center[color_index] = r_center[0]-self.CAMERA_WIDTH
 
     def get_pillar_areas(self):
         if self.areas is not None:
